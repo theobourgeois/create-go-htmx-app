@@ -46,3 +46,7 @@ func InitDB() {
 func Query(query string, args ...any) (*sql.Rows, error) {
 	return db.Query(query)
 }
+
+func GetDB() *sql.DB {
+	return db
+}
