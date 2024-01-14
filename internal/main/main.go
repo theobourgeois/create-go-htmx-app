@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	routes.InitRoutes(db.GetDB())
 	db.InitDB()
+	routes.InitRoutes(db.GetDB())
 	server.Start()
 }

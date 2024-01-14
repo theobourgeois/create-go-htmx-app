@@ -11,35 +11,47 @@ import (
 )
 
 type Route struct {
-	Name string
-	Component templ.Component	
+	Name      string
+	Component templ.Component
+}
+
+type ApiRouteHandler func(w http.ResponseWriter, r *http.Request) templ.Component
+type ApiRoute struct {
+	Name    string
+	Handler ApiRouteHandler
 }
 
 var routes []Route
+var apiRoutes []ApiRoute
 
 func CreateRoute(name string, component templ.Component) {
 	routes = append(routes, Route{name, component})
 }
 
+func CreateApiRoute(name string, handler ApiRouteHandler) {
+	apiRoutes = append(apiRoutes, ApiRoute{name, handler})
+}
+
 func SetupRoutes() {
-	// render each route, wrapped in the layout. 
 	for _, route := range routes {
 		http.Handle(route.Name, templ.Handler(layout.Layout(route.Component)))
 	}
 
-	// serve static files
-	fullPath := "node/styles"
-	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-		log.Fatalln("Static file does not exist", err)
+	for _, apiRoute := range apiRoutes {
+		http.HandleFunc(apiRoute.Name, func(w http.ResponseWriter, r *http.Request) {
+			component := apiRoute.Handler(w, r)
+			templ.Handler(component).ServeHTTP(w, r)
+		})
 	}
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(fullPath))))
+
+	serveStaticFiles()
 }
 
-func RenderHTMLPage(filename string, w http.ResponseWriter, r *http.Request) {
-	fullPath := "../../app/pages/" + filename
-  // check if file exists
-	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-		log.Fatalln("File does not exist", err)
+func serveStaticFiles() {
+	// Tailwind files
+	tailwindCssDir := "styles"
+	if _, err := os.Stat(tailwindCssDir); os.IsNotExist(err) {
+		log.Fatalln("Static file does not exist", err)
 	}
-	http.ServeFile(w, r, fullPath) 
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(tailwindCssDir))))
 }
