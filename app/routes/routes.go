@@ -2,13 +2,11 @@ package routes
 
 import (
 	"database/sql"
-	"net/http"
+	"project/app/templates/index"
 	"project/internal/routes"
 )
 
 func InitRoutes(db *sql.DB) {
-	routes.CreateRoute("/", func(w http.ResponseWriter, r *http.Request) {
-				// do something
-	})
-
+	homePage := index.Index("World")
+	routes.CreateRoute("/", homePage)
 }

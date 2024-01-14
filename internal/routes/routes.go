@@ -1,38 +1,45 @@
 package routes
 
 import (
+	"log"
 	"net/http"
+	"os"
+
+	"project/app/templates/layout"
+
+	"github.com/a-h/templ"
 )
 
 type Route struct {
 	Name string
-	Handler http.HandlerFunc 
+	Component templ.Component	
 }
 
 var routes []Route
 
-func CreateRoute(name string, handler http.HandlerFunc) {
-	routes = append(routes, Route{name, handler})
+func CreateRoute(name string, component templ.Component) {
+	routes = append(routes, Route{name, component})
 }
 
 func SetupRoutes() {
-	setupRoutes()
-	setupApiRoutes()
-}
-
-func setupRoutes() {
+	// render each route, wrapped in the layout. 
 	for _, route := range routes {
-		http.HandleFunc(route.Name, func(w http.ResponseWriter, r *http.Request) {
-			route.Handler(w, r)
-		})
+		http.Handle(route.Name, templ.Handler(layout.Layout(route.Component)))
 	}
-	// serve static files
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("../node/styles"))))
-}
 
-func setupApiRoutes() {
+	// serve static files
+	fullPath := "node/styles"
+	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+		log.Fatalln("Static file does not exist", err)
+	}
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(fullPath))))
 }
 
 func RenderHTMLPage(filename string, w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "../app/pages/" + filename)
+	fullPath := "../../app/pages/" + filename
+  // check if file exists
+	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+		log.Fatalln("File does not exist", err)
+	}
+	http.ServeFile(w, r, fullPath) 
 }

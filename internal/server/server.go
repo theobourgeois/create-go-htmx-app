@@ -13,7 +13,7 @@ import (
 
 func Start() {	
 	routes.SetupRoutes()
-	err := godotenv.Load()
+	err := godotenv.Load(".env")
 	if err != nil {
 			log.Fatalln("Error loading .env file")
 	}
