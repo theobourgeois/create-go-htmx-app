@@ -1,17 +1,18 @@
 package index
 
-templ Index(name string) {
-	<div class="text-6xl font-bold">Hello, { name }</div>
-	<button 
-		hx-post="/api/test"
-		class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-    hx-trigger="click"
-    hx-target="#parent-div"
-    hx-swap="outerHTML"
-	>
-			Click Me!
-	</button>
-	<div id="parent-div">
-		<div class="text-2xl font-bold">This is a test</div>
+templ Index() {
+	<div class="flex flex-col gap-4 justify-center my-4 mx-auto w-3/4">
+		<div class="text-6xl font-bold text-center">Welcome to your HTMX-Go app</div>
+		<div id="form-container">
+			<form class="flex flex-col" hx-post="/api/posts" hx-target="#posts" hx-swap="innerHTML">
+					<label for="name" class="font-semibold">Title</label>
+					<input type="text" name="name" placeholder="Name your post" class="border border-slate-200 rounded-md px-2 py-1" />
+					<label for="body" class="font-semibold mt-2">Content</label>
+					<textarea name="body" placeholder="Write your post" class="mb-2 border border-slate-200 rounded-md px-2 py-1"></textarea>
+					<button type="submit" class="w-fit border-blue-600 border bg-blue-500 text-white rounded-md hover:bg-blue-600 px-2 py-1">Create Post</button>
+			</form>
+		</div>
+
+		<div id="posts" hx-get="/api/posts" hx-trigger="load"></div>
 	</div>
 }

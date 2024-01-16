@@ -6,26 +6,25 @@ import (
 	"net/http"
 	"os"
 
-	"project/internal/routes"
+	"project/internal/router"
 
 	"github.com/joho/godotenv"
 )
 
-func Start() {	
-	routes.SetupRoutes()
+func Start() {
+	router.SetupRoutes()
 	err := godotenv.Load(".env")
 	if err != nil {
-			log.Fatalln("Error loading .env file")
+		log.Fatalln("Error loading .env file")
 	}
 
 	port := os.Getenv("SERVER_PORT")
-	fmt.Println("Server starting on port", port, "...") 
+	fmt.Println("Server starting on port", port, "...")
 	go func() {
-		if err := http.ListenAndServe(":" + port, nil); err != nil {
+		if err := http.ListenAndServe(":"+port, nil); err != nil {
 			log.Fatalln(err)
 		}
 	}()
 
 	select {}
 }
-

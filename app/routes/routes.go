@@ -2,13 +2,20 @@ package routes
 
 import (
 	"database/sql"
-	"project/app/api/files"
+	"net/http"
+	"project/app/api/posts"
 	"project/app/templates/pages/index"
-	"project/internal/routes"
+	"project/internal/router"
 )
 
 func InitRoutes(db *sql.DB) {
-	homePage := index.Index("World")
-	routes.CreateRoute("/", homePage)
-	routes.CreateApiRoute("/api/test", files.FilesHandler(db))
+	// page routes
+	homePage := index.Index()
+	router.CreateRoute("/", homePage)
+
+	// api routes
+	router.CreateApiRoute("/api/posts", http.MethodGet, posts.GetPosts(db))
+	router.CreateApiRoute("/api/posts", http.MethodPost, posts.PostPosts(db))
+
+	router.CreateApiRoute("/api/posts/{id}", http.MethodDelete, posts.DeletePost(db))
 }
