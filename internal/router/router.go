@@ -10,9 +10,16 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type Vars = map[string]string
+type DynamicComponent = func(vars Vars) templ.Component
 type Route struct {
 	Name      string
 	Component templ.Component
+}
+
+type DynamicRoute struct {
+	Name             string
+	ComponentHandler func(vars Vars) templ.Component
 }
 
 type ApiRouteHandler = func(w http.ResponseWriter, r *http.Request) templ.Component
@@ -24,10 +31,15 @@ type ApiRoute struct {
 }
 
 var routes []Route
+var dynamicRoutes []DynamicRoute
 var apiRoutes []ApiRoute
 
 func CreateRoute(name string, component templ.Component) {
 	routes = append(routes, Route{name, component})
+}
+
+func CreateDynamicRoute(name string, componentHandler func(vars Vars) templ.Component) {
+	dynamicRoutes = append(dynamicRoutes, DynamicRoute{name, componentHandler})
 }
 
 func CreateApiRoute(name string, method string, handler ApiRouteHandler) {
@@ -41,8 +53,15 @@ func SetupRoutes() {
 		r.Handle(route.Name, templ.Handler(layout.Layout(route.Component)))
 	}
 
+	for _, dynamicRoute := range dynamicRoutes {
+		r.HandleFunc(dynamicRoute.Name, func(w http.ResponseWriter, r *http.Request) {
+			params := mux.Vars(r)
+			templ.Handler(layout.Layout(dynamicRoute.ComponentHandler(params))).ServeHTTP(w, r)
+		})
+	}
+
 	for _, apiRoute := range apiRoutes {
-		r.HandleFunc(apiRoute.Name, makeHandler(apiRoute)).Methods(apiRoute.Method)
+		r.HandleFunc(apiRoute.Name, makeApiHandler(apiRoute)).Methods(apiRoute.Method)
 	}
 
 	// Serve static files
@@ -51,7 +70,7 @@ func SetupRoutes() {
 	http.Handle("/", r)
 }
 
-func makeHandler(apiRoute ApiRoute) func(w http.ResponseWriter, r *http.Request) {
+func makeApiHandler(apiRoute ApiRoute) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != apiRoute.Method {
 			log.Println("Invalid request method, expected", apiRoute.Method, "got", r.Method, "for", apiRoute.Name, "route")

@@ -4,34 +4,14 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
-	tposts "project/app/templates/components/posts"
-	"project/app/utils/dbtypes"
-	"project/app/utils/dbutils"
+	"project/app/models/postmodel"
+	tpost "project/app/templates/components/postcomps"
 	"project/internal/router"
-	"time"
+	"strconv"
 
 	"github.com/a-h/templ"
 	"github.com/gorilla/mux"
 )
-
-func getPosts(db *sql.DB) ([]dbtypes.Post, error) {
-	query := "SELECT id, title, body FROM posts"
-	rows, err := db.Query(query)
-	if err != nil {
-		return nil, err
-	}
-
-	posts, err := dbutils.GetQueryRows[dbtypes.Post](rows, func(rowData *dbtypes.Post) error {
-		err := rows.Scan(&rowData.Id, &rowData.Title, &rowData.Body)
-		rowData.CreatedAt = time.Now()
-		return err
-	})
-	if err != nil {
-		return nil, err
-	}
-	log.Println("Success getting posts with query", query)
-	return posts, nil
-}
 
 func PostPosts(db *sql.DB) router.ApiRouteHandler {
 	return func(w http.ResponseWriter, r *http.Request) templ.Component {
@@ -42,25 +22,44 @@ func PostPosts(db *sql.DB) router.ApiRouteHandler {
 			return templ.NopComponent
 		}
 
-		posts, err := getPosts(db)
+		posts, err := postmodel.GetAll(db)
 		if err != nil {
 			http.Error(w, "Error getting posts", http.StatusInternalServerError)
-			log.Println("Error getting posts", err)
 			return templ.NopComponent
 		}
-		return tposts.Posts(posts)
+		return tpost.Posts(posts)
 	}
 }
 
 func GetPosts(db *sql.DB) router.ApiRouteHandler {
 	return func(w http.ResponseWriter, r *http.Request) templ.Component {
-		posts, err := getPosts(db)
+		//time.Sleep(500 * time.Millisecond)
+		posts, err := postmodel.GetAll(db)
 		if err != nil {
 			http.Error(w, "Error getting posts", http.StatusInternalServerError)
-			log.Println("Error getting posts", err)
 			return templ.NopComponent
 		}
-		return tposts.Posts(posts)
+		return tpost.Posts(posts)
+	}
+}
+
+func GetPost(db *sql.DB) router.ApiRouteHandler {
+	return func(w http.ResponseWriter, r *http.Request) templ.Component {
+		id, err := strconv.Atoi(mux.Vars(r)["id"])
+		if err != nil {
+			http.Error(w, "Error parsing id", http.StatusInternalServerError)
+			log.Println("Error parsing id", err)
+			return templ.NopComponent
+		}
+
+		post, err := postmodel.GetById(id, db)
+		if err != nil {
+			http.Error(w, "Error getting post", http.StatusInternalServerError)
+			log.Println("Error getting post", err)
+			return templ.NopComponent
+		}
+		log.Println("Getting post with id", id)
+		return tpost.Post(post)
 	}
 }
 
@@ -74,12 +73,70 @@ func DeletePost(db *sql.DB) router.ApiRouteHandler {
 			log.Println("Error deleting post", err)
 		}
 
-		posts, err := getPosts(db)
+		posts, err := postmodel.GetAll(db)
 		if err != nil {
 			http.Error(w, "Error getting posts", http.StatusInternalServerError)
-			log.Println("Error getting posts", err)
 			return templ.NopComponent
 		}
-		return tposts.Posts(posts)
+		return tpost.Posts(posts)
+	}
+}
+
+// ToggleEditPost toggles the edit state of a post
+// If the query param 'editing' is true, it will return the editpost component
+// Otherwise, it will return the post component
+func ToggleEditPost(db *sql.DB) router.ApiRouteHandler {
+	return func(w http.ResponseWriter, r *http.Request) templ.Component {
+		id, err := strconv.Atoi(mux.Vars(r)["id"])
+		editing := r.URL.Query().Get("editing") == "true"
+
+		if err != nil {
+			http.Error(w, "Error parsing id", http.StatusInternalServerError)
+			log.Println("Error parsing id", err)
+			return templ.NopComponent
+		}
+
+		post, err := postmodel.GetById(id, db)
+		if err != nil {
+			http.Error(w, "Error getting post", http.StatusInternalServerError)
+			log.Println("Error getting post", err)
+			return templ.NopComponent
+		}
+
+		if editing {
+			log.Println("Editing post with id", id)
+			return tpost.EditPost(post)
+		}
+
+		return tpost.Post(post)
+	}
+}
+
+func UpdatePost(db *sql.DB) router.ApiRouteHandler {
+	return func(w http.ResponseWriter, r *http.Request) templ.Component {
+		id, err := strconv.Atoi(mux.Vars(r)["id"])
+		if err != nil {
+			http.Error(w, "Error parsing id", http.StatusInternalServerError)
+			log.Println("Error parsing id", err)
+			return templ.NopComponent
+		}
+
+		_, err = db.Exec("UPDATE posts SET title = ?, body = ? WHERE id = ?", r.FormValue("name"), r.FormValue("body"), id)
+
+		if err != nil {
+			http.Error(w, "Error updating post", http.StatusInternalServerError)
+			log.Println("Error updating post", err)
+			return templ.NopComponent
+		}
+
+		post, err := postmodel.GetById(id, db)
+
+		if err != nil {
+			http.Error(w, "Error getting post", http.StatusInternalServerError)
+			log.Println("Error getting post", err)
+			return templ.NopComponent
+		}
+
+		return tpost.Post(post)
 	}
 }

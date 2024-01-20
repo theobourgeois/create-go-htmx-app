@@ -7,7 +7,10 @@ DB_PORT := $(shell grep "DB_PORT" .env | cut -d '=' -f2)
 DB_HOST := $(shell grep "DB_HOST" .env | cut -d '=' -f2)
 
 db-up:
-	@mysql -u$(DB_USER) -p'$(DB_PASSWORD)' -h ${DB_HOST} --port ${DB_PORT} $(DB_NAME) < database/schema.sql
+	@for file in database/migrations/*.sql ; do \
+				mysql -u$(DB_USER) -p'$(DB_PASSWORD)' -h ${DB_HOST} --port ${DB_PORT} $(DB_NAME) < $$file; \
+				echo "Executed $$file"
+	done
 
 run-gen:
 	npx tailwindcss -i ./styles/input.css -o ./static/output.css
@@ -18,4 +21,5 @@ run:
 	go run internal/main/main.go
 
 clean: 
+	go mod tidy
 	go clean -cache
