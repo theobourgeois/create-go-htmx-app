@@ -11,7 +11,7 @@ import "io"
 import "bytes"
 
 import "strconv"
-import "project/app/models/postmodel"
+import "theobourgeois.com/app/models/postmodel"
 import "fmt"
 
 func CreatePost() templ.Component {

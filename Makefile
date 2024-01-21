@@ -8,8 +8,8 @@ DB_HOST := $(shell grep "DB_HOST" .env | cut -d '=' -f2)
 
 db-up:
 	@for file in database/migrations/*.sql ; do \
-				mysql -u$(DB_USER) -p'$(DB_PASSWORD)' -h ${DB_HOST} --port ${DB_PORT} $(DB_NAME) < $$file; \
-				echo "Executed $$file"
+		mysql -u$(DB_USER) -p'$(DB_PASSWORD)' -h ${DB_HOST} --port ${DB_PORT} $(DB_NAME) < $$file; \
+		echo "Executed $$file"; \
 	done
 
 run-gen:
@@ -20,6 +20,11 @@ run-gen:
 run: 
 	go run internal/main/main.go
 
+build:
+	npx tailwindcss -i ./styles/input.css -o ./static/output.css
+	templ generate
+	go build internal/main/main.go
+
 clean: 
-	go mod tidy
+	go tidy
 	go clean -cache

@@ -4,10 +4,11 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
-	"project/app/models/postmodel"
-	tpost "project/app/templates/components/postcomps"
-	"project/internal/router"
 	"strconv"
+
+	"theobourgeois.com/app/models/postmodel"
+	tpost "theobourgeois.com/app/templates/components/postcomps"
+	"theobourgeois.com/internal/router"
 
 	"github.com/a-h/templ"
 	"github.com/gorilla/mux"

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"project/app/routes"
-	"project/internal/db"
-	"project/internal/server"
+	"theobourgeois.com/app/routes"
+	"theobourgeois.com/internal/db"
+	"theobourgeois.com/internal/server"
 )
 
 func main() {

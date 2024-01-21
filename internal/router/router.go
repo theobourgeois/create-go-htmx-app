@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"project/app/templates/layout"
+	"theobourgeois.com/app/templates/layout"
 
 	"github.com/a-h/templ"
 	"github.com/gorilla/mux"

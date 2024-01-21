@@ -3,10 +3,11 @@ package routes
 import (
 	"database/sql"
 	"net/http"
-	"project/app/api/posts"
-	"project/app/templates/pages/index"
-	"project/app/templates/pages/postpage"
-	"project/internal/router"
+
+	"theobourgeois.com/app/api/posts"
+	"theobourgeois.com/app/templates/pages/index"
+	"theobourgeois.com/app/templates/pages/postpage"
+	"theobourgeois.com/internal/router"
 
 	"github.com/a-h/templ"
 )

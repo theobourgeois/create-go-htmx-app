@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"project/internal/router"
+	"theobourgeois.com/internal/router"
 
 	"github.com/joho/godotenv"
 )
